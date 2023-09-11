@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Product from "@/models/prodcut";
 import { connectToDB } from "@/utils/database";
-
+export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await connectToDB();
