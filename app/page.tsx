@@ -11,7 +11,7 @@ const ProductList = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("/api/fetch-all-products")
+    fetch("/api/fetch-all-products", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
         if (data && data.data) {
