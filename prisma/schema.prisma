@@ -1,0 +1,309 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String?
+  firstName    String?
+  lastName     String?
+  email        String        @unique
+  image        String?
+  password     String?
+  emailVerified DateTime?
+  telephone    String?
+
+
+  accounts     Account[]
+  reviews      Review[]
+  ratings      Rating[]
+  orders       Order[]
+  invoices     Invoice[] @relation("CustomerInvoices")
+  addresses    Address[] @relation("UserAddresses")
+  feedbacks    Feedback[] @relation("UserFeedback")
+
+  @@map("users")
+}
+
+model Admin {
+  id           String     @id @default(cuid())
+  username     String
+  password     String
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Category {
+  id              String   @id @default(cuid())
+  name            String
+  description     String   @db.Text
+  images          String[]
+  path            String
+  products        Product[] @relation("ProductCategory")
+  parentCategory  Category? @relation("ParentChildCategories", fields: [parentCategoryId], references: [id])
+  parentCategoryId String?
+  subCategories   Category[] @relation("ParentChildCategories")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  sku             String        @unique
+  price           Decimal       @db.Decimal(10, 2)
+  salePrice       Decimal?      @db.Decimal(10, 2)
+  description     String        @db.Text
+  weight          String?
+  dimensions      String?
+  inStock         Boolean
+  stockCount      Int
+  path            String
+
+  category_id     String
+  category        Category   @relation(fields: [category_id], references: [id], onDelete: Cascade, name: "ProductCategory")
+  discounts       Discount[] @relation("ProductDiscount") 
+  images          String[]
+  tags            String[]
+  ratings         Rating[]
+  reviews         Review[]
+  orderItems      OrderItem[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum ReviewType {
+  PRODUCT
+  ORDER
+}
+model Review {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating          Int
+  comment         String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Rating {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum ORDER_STATUS {
+  PENDING
+  CANCELLED
+  COMPLETED
+  SHIPPED
+  DELIVERED
+  RETURNED
+  REFUNDED
+}
+
+model OrderItem {
+  id               String   @id @default(cuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity         Int
+  unitPrice        Decimal  @db.Decimal(10, 2)
+  subTotal         Decimal  @db.Decimal(10, 2) 
+  discount         Decimal? @db.Decimal(10, 2) 
+  total       Decimal  @db.Decimal(10, 2) 
+
+  productName      String
+  productSku       String
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Order {
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderDate        DateTime       @default(now())
+  subtotal         Decimal        @db.Decimal(10, 2) 
+  totalDiscounts   Decimal        @db.Decimal(10, 2) 
+  deliveryFee      Decimal        @db.Decimal(5, 2)
+  total            Decimal        @db.Decimal(10, 2) 
+  paymentMethod    PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId  String?
+  status           ORDER_STATUS   @default(PENDING)
+  orderItems       OrderItem[]
+  discounts        Discount[]     @relation("OrderDiscount") 
+  invoice          Invoice?       @relation("OrderInvoice")
+  coupons          Coupon[]       @relation("OrderCoupon")
+  address          Address?         @relation(fields: [addressId], references: [id])
+  addressId        String?
+  invoiceId        String?
+  deliveryOption   DeliveryOption? @relation(fields: [deliveryOptionId], references: [id])
+  deliveryOptionId String?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Address {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserAddresses")
+  orders        Order[]
+  streetName    String  
+  buildingNumber String  
+  addressLine2  String?  
+  city          String
+  postalCode    String
+  country       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+model Invoice {
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade, name: "OrderInvoice")
+  invoiceNumber   Int           @unique @default(autoincrement())
+  issueDate       DateTime      @default(now())
+  dueDate         DateTime
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, name: "CustomerInvoices")
+  total           Decimal       @db.Decimal(10, 2)
+  status          INVOICE_STATUS @default(UNPAID)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum INVOICE_STATUS {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+model DeliveryOption {
+  id          String  @id @default(cuid())
+  method      String  
+  cost        Decimal @db.Decimal(5, 2)
+  days        Int     
+  description String? 
+  active      Boolean @default(true) 
+
+  orders      Order[] 
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PaymentMethod {
+  id          String       @id @default(cuid())
+  method      String       @unique 
+  description String?
+  active      Boolean      @default(true)
+  orders      Order[]
+  bankAccounts BankAccount[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model BankAccount {
+  id                String         @id @default(cuid())
+  bankName          String
+  accountName       String
+  accountNumber     String
+  swiftCode         String?
+  bic               String?
+  paymentMethodId   String
+  paymentMethod     PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
+}
+
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+  DELIVERY
+}
+
+
+model Discount {
+  id           String       @id @default(cuid())
+  code         String?     
+  description  String?      
+  discountType DiscountType 
+  value        Decimal      @db.Decimal(5, 2) 
+  isActive     Boolean      @default(true)
+
+  products     Product[]    @relation("ProductDiscount")
+  orders       Order[]      @relation("OrderDiscount")
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Coupon {
+  id           String   @id @default(cuid())
+  code         String   @unique 
+  description  String?  
+  discountType DiscountType 
+  value        Decimal  @db.Decimal(5, 2) 
+  isActive     Boolean  @default(true)
+
+  orders       Order[]  @relation("OrderCoupon")
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+model Feedback {
+  id             String  @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserFeedback")
+  rating          Int
+  comment         String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
