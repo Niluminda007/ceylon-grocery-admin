@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import CeylonLogo from "@/public/ceylon-admin-logo.svg";
+import ceylonLogo from "@/public/ceylon-logo-full.jpg";
 import bgAuthMobile from "@/public/auth/auth-bg_mobile_2.jpg";
 
 export const AuthBackground = () => {
@@ -21,7 +21,14 @@ export const AuthBackground = () => {
       </div>
 
       <div className="hidden md:flex justify-center items-center">
-        <CeylonLogo />
+        <Image
+          src={ceylonLogo}
+          alt="ceylon-grocery-logo"
+          quality={75}
+          priority
+          height={"450"}
+          width={"450"}
+        />
       </div>
     </div>
   );

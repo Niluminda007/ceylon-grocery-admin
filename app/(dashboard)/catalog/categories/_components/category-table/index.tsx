@@ -1,14 +1,6 @@
-import {
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { Category } from "@prisma/client";
+import { useMemo, useState } from "react";
+import { columns } from "./columns";
 import {
   Table,
   TableBody,
@@ -17,6 +9,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
 
 import {
   DropdownMenu,
@@ -24,44 +28,28 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import React from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon } from "lucide-react";
-import { columns } from "./columns";
-import { Product } from "@prisma/client";
-import { decimalToNumber } from "@/lib/utils";
-import { ProductActionsBar } from "../product-actions-bar";
-import { ProductDelete } from "../product-actions-bar/product-delete";
+import { CategoryActionsBar } from "../category-actions-bar";
 
-interface ProductsTableProps {
-  products: Product[];
+interface CategoryTableProps {
+  categories: Category[];
 }
-
-export const ProductsTable = ({ products }: ProductsTableProps) => {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const data = React.useMemo(
+export const CategoryTable = ({ categories }: CategoryTableProps) => {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  const data = useMemo(
     () =>
-      products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        image: product.images[0],
-        price: decimalToNumber(product.price),
-        quantity: product.stockCount,
-        inStock: product.inStock,
+      categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        image: category.images[0],
       })),
-    [products]
+    [categories]
   );
-
-  const columnsMemo = React.useMemo(() => columns, []);
+  const columnsMemo = useMemo(() => columns, []);
 
   const table = useReactTable({
     data,
@@ -92,13 +80,13 @@ export const ProductsTable = ({ products }: ProductsTableProps) => {
 
   return (
     <div className="w-full flex flex-col space-y-6">
-      <ProductActionsBar
+      <CategoryActionsBar
         selectedRows={selectedRowData}
         resetRowSelection={resetRowSelection}
       />
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter products..."
+          placeholder="Filter categories..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)

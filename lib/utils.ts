@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Decimal } from "decimal.js";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -30,6 +31,11 @@ export const replaceUnderscoresWithSpaces = (data: string): string => {
   return data.split("_").join(" ");
 };
 
+/* Dup */
+export const replaceSpacesWithUnderscores = (data: string): string => {
+  return data.split(" ").join("_");
+};
+
 export const generateUrlPaths = (data: string): string => {
   return data.split(" ").join("_");
 };
@@ -53,4 +59,25 @@ export function generateInitials(name: string) {
     initials += name.slice(0, 1);
   }
   return initials.length > 2 ? initials.slice(0, 2) : initials;
+}
+
+export const fileToBase64 = (file: File): Promise<string | null> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      resolve(reader.result ? (reader.result as string) : null);
+    };
+
+    reader.onerror = (error) => reject(error);
+
+    reader.readAsDataURL(file);
+  });
+};
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }

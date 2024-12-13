@@ -27,7 +27,7 @@ const ProductPage = () => {
 
   if (data && data.length > 0) {
     return (
-      <div>
+      <div className="flex flex-col space-y-4 relative p-4 border border-gray-300 rounded-md">
         <ProductsTable products={data} />
       </div>
     );
