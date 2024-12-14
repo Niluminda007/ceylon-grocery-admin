@@ -29,7 +29,7 @@ const CategoryEditPage = ({ params }: CategoryEditPage) => {
     return <Loader />;
   }
   if (!isLoading && !category) {
-    <div>Category can't be found</div>;
+    <div>Category cant be found</div>;
   }
   if (error) {
     return <div>{error.message}</div>;

@@ -136,6 +136,15 @@ export const ProductForm = ({
     type === "create" ? "Add Product" : "Update Product";
   const productButtonPendingText =
     type === "create" ? "...adding" : "...updating";
+
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const [dropdownWidth, setDropdownWidth] = useState("auto");
+
+  useEffect(() => {
+    if (buttonRef.current) {
+      setDropdownWidth(`${buttonRef.current.offsetWidth}px`);
+    }
+  }, []);
   return (
     <Form {...form}>
       <form
@@ -276,17 +285,9 @@ export const ProductForm = ({
               control={form.control}
               name="category"
               render={({ field }) => {
-                const buttonRef = useRef<HTMLDivElement>(null);
-                const [dropdownWidth, setDropdownWidth] = useState("auto");
                 const selectedCategory = categories.find(
                   (category) => category.id === field.value
                 );
-                useEffect(() => {
-                  if (buttonRef.current) {
-                    setDropdownWidth(`${buttonRef.current.offsetWidth}px`);
-                  }
-                }, []);
-
                 return (
                   <FormItem className="flex flex-col justify-between relative">
                     <FormLabel>Category</FormLabel>
