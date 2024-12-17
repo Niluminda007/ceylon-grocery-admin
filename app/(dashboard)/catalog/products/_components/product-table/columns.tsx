@@ -21,6 +21,7 @@ import { FaEdit } from "react-icons/fa";
 
 export type ProductTD = {
   id: string;
+  category: string;
   image: string;
   name: string;
   price: number;
@@ -91,6 +92,15 @@ export const columns: ColumnDef<ProductTD>[] = [
     cell: ({ row }) => (
       <div className="text-sm text-neutral-900 font-medium">
         {row.getValue("name")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => (
+      <div className="text-sm text-neutral-900 font-medium">
+        {row.getValue("category")}
       </div>
     ),
   },

@@ -2,15 +2,25 @@
 
 import Loader from "@/components/loader";
 import { fetcher } from "@/lib/fetcher";
-import { Product } from "@prisma/client";
+import { Category, Product } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { ProductsTable } from "./_components/product-table";
+import { ExtendedProduct } from "@/types/product";
 
 const ProductPage = () => {
-  const { data, isLoading, error } = useQuery<Product[]>({
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = useQuery<ExtendedProduct[]>({
     queryKey: ["products-all"],
     queryFn: () => fetcher({ url: "/fetch/products" }),
+  });
+
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["categories-all"],
+    queryFn: () => fetcher({ url: "/fetch/categories" }),
   });
 
   if (isLoading) {
@@ -25,10 +35,10 @@ const ProductPage = () => {
     );
   }
 
-  if (data && data.length > 0) {
+  if (products && products.length > 0) {
     return (
       <div className="flex flex-col space-y-4 relative p-4 border border-gray-300 rounded-md">
-        <ProductsTable products={data} />
+        <ProductsTable products={products} categories={categories || []} />
       </div>
     );
   }

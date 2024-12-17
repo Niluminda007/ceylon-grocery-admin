@@ -22,24 +22,26 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { columns } from "./columns";
-import { Product } from "@prisma/client";
+import { Category, Product } from "@prisma/client";
 import { decimalToNumber } from "@/lib/utils";
 import { ProductActionsBar } from "../product-actions-bar";
-import { ProductDelete } from "../product-actions-bar/product-delete";
+import { ExtendedProduct } from "@/types/product";
 
 interface ProductsTableProps {
-  products: Product[];
+  products: ExtendedProduct[];
+  categories: Category[];
 }
 
-export const ProductsTable = ({ products }: ProductsTableProps) => {
+export const ProductsTable = ({ products, categories }: ProductsTableProps) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -53,6 +55,7 @@ export const ProductsTable = ({ products }: ProductsTableProps) => {
       products.map((product) => ({
         id: product.id,
         name: product.name,
+        category: product.category.name,
         image: product.images[0],
         price: decimalToNumber(product.price),
         quantity: product.stockCount,
@@ -61,6 +64,7 @@ export const ProductsTable = ({ products }: ProductsTableProps) => {
     [products]
   );
 
+  const categoryData = React.useMemo(() => categories, [categories]);
   const columnsMemo = React.useMemo(() => columns, []);
 
   const table = useReactTable({
@@ -97,13 +101,51 @@ export const ProductsTable = ({ products }: ProductsTableProps) => {
         resetRowSelection={resetRowSelection}
       />
       <div className="flex items-center py-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="mr-auto">
+              Filter By Category <ChevronDownIcon className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {categoryData.map((category) => {
+              const isSelected =
+                table.getColumn("category")?.getFilterValue() === category.name;
+
+              return (
+                <DropdownMenuItem
+                  key={category.id}
+                  onClick={() =>
+                    table.getColumn("category")?.setFilterValue(category.name)
+                  }
+                  className={`flex justify-between items-center capitalize cursor-pointer hover:bg-gray-100 active:bg-gray-200 ${
+                    isSelected ? "bg-gray-200 font-bold" : ""
+                  }`}
+                >
+                  {category.name}
+                  {isSelected && (
+                    <CheckIcon className="ml-2 h-4 w-4 text-green-600" />
+                  )}
+                </DropdownMenuItem>
+              );
+            })}
+            <div className="border-t my-1" />
+            <DropdownMenuItem
+              onClick={() => table.getColumn("category")?.setFilterValue("")}
+              className="capitalize text-red-500 font-semibold cursor-pointer hover:bg-red-100 active:bg-red-200"
+            >
+              Reset Filter
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Input
-          placeholder="Filter products..."
+          placeholder="Search products..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-3xl w-full"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

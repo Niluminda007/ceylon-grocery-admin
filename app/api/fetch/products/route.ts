@@ -15,6 +15,12 @@ export async function GET(req: NextRequest) {
       orderBy: {
         name: "asc",
       },
+      include: {
+        category: true,
+        discounts: true,
+        ratings: true,
+        reviews: true,
+      },
     });
     if (!products) {
       return NextResponse.json("No products found", { status: 404 });
