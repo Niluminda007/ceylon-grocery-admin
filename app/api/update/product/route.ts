@@ -109,10 +109,7 @@ export async function POST(req: NextRequest) {
     const updatedProduct = await updateProductIfNeeded(id, updateData);
     revalidatePath(`/catalog/products/edit/${id}`);
 
-    return NextResponse.json(
-      { message: "Product Updated Successfully" },
-      { status: 201 }
-    );
+    return NextResponse.json(updatedProduct, { status: 201 });
   } catch (error) {
     console.error("Error updating product:", error);
     return NextResponse.json(

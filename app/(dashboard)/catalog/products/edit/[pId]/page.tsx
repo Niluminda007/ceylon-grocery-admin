@@ -24,6 +24,7 @@ const ProductEditPage = ({ params }: ProductEditPageProps) => {
   } = useQuery<Product>({
     queryKey: ["product", productId],
     queryFn: () => fetcher({ url: "/fetch/product", params: { productId } }),
+    staleTime: 0,
   });
   if (isLoading) {
     return <Loader />;

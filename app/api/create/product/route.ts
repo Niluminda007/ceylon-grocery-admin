@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     });
 
     const uploadedImages: string[] = [];
-
+    let updatedNewProduct;
     if (images && images.length > 0) {
       const image = images[0];
       try {
@@ -79,13 +79,13 @@ export async function POST(req: NextRequest) {
       }
 
       if (uploadedImages.length > 0) {
-        await db.product.update({
+        updatedNewProduct = await db.product.update({
           where: { id: newProduct.id },
           data: { images: uploadedImages.map((url) => url) },
         });
       }
     } else {
-      await db.product.update({
+      updatedNewProduct = await db.product.update({
         where: { id: newProduct.id },
         data: {
           images: [
@@ -94,10 +94,7 @@ export async function POST(req: NextRequest) {
         },
       });
     }
-    return NextResponse.json(
-      { message: "Product Created Successfully" },
-      { status: 201 }
-    );
+    return NextResponse.json(updatedNewProduct, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { message: "Error creating product.", error: error },

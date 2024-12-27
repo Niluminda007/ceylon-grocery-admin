@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
@@ -35,10 +35,15 @@ import { Category, Product } from "@prisma/client";
 import { decimalToNumber } from "@/lib/utils";
 import { ProductActionsBar } from "../product-actions-bar";
 import { ExtendedProduct } from "@/types/product";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface ProductsTableProps {
   products: ExtendedProduct[];
   categories: Category[];
+}
+
+interface ProductFilterType {
+  category: string;
 }
 
 export const ProductsTable = ({ products, categories }: ProductsTableProps) => {
@@ -94,6 +99,39 @@ export const ProductsTable = ({ products, categories }: ProductsTableProps) => {
     setRowSelection({});
   };
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [filters, setFilters] = useState<ProductFilterType>({
+    category: searchParams.get("category") || "",
+  });
+  const updateFilters = (newFilters: ProductFilterType) => {
+    setFilters(newFilters);
+
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+
+    const queryString = params.toString().replace(/\+/g, "%20");
+    router.push(`/catalog/products?${queryString}`);
+  };
+
+  const handleCategoryFilterChange = (category: string) => {
+    table.getColumn("category")?.setFilterValue(category);
+    updateFilters({ category });
+  };
+
+  useEffect(() => {
+    if (filters.category) {
+      table.getColumn("category")?.setFilterValue(filters.category);
+    }
+  }, [filters.category, table]);
+
   return (
     <div className="w-full flex flex-col space-y-6">
       <ProductActionsBar
@@ -115,9 +153,7 @@ export const ProductsTable = ({ products, categories }: ProductsTableProps) => {
               return (
                 <DropdownMenuItem
                   key={category.id}
-                  onClick={() =>
-                    table.getColumn("category")?.setFilterValue(category.name)
-                  }
+                  onClick={() => handleCategoryFilterChange(category.name)}
                   className={`flex justify-between items-center capitalize cursor-pointer hover:bg-gray-100 active:bg-gray-200 ${
                     isSelected ? "bg-gray-200 font-bold" : ""
                   }`}

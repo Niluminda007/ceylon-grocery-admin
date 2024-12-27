@@ -59,19 +59,36 @@ export const ProductForm = ({
     images: [],
     tags: [],
   };
-  if (type === "update" && product) {
-    defaultValues = {
+  const initializeDefaultValues = (
+    product: Product
+  ): z.infer<typeof ProductSchema> => {
+    return {
       id: product.id,
       name: product.name,
       price: decimalToNumber(product.price),
       salePrice: product.salePrice ? decimalToNumber(product.salePrice) : -1,
       description: product.description,
-      weight: product.weight ? product.weight : "0g",
+      weight: product.weight || "0g",
       stockCount: product.stockCount,
       category: product.category_id,
       images: [],
-      tags: product.tags,
+      tags: product.tags || [],
     };
+  };
+  if (type === "update" && product) {
+    // defaultValues = {
+    //   id: product.id,
+    //   name: product.name,
+    //   price: decimalToNumber(product.price),
+    //   salePrice: product.salePrice ? decimalToNumber(product.salePrice) : -1,
+    //   description: product.description,
+    //   weight: product.weight ? product.weight : "0g",
+    //   stockCount: product.stockCount,
+    //   category: product.category_id,
+    //   images: [],
+    //   tags: product.tags,
+    // };
+    defaultValues = initializeDefaultValues(product);
   }
 
   const form = useForm<z.infer<typeof ProductSchema>>({
@@ -98,18 +115,25 @@ export const ProductForm = ({
 
   const { mutate: productMutation, isPending } = useMutation({
     mutationFn: (values: z.infer<typeof ProductSchema>) =>
-      fetcher({ url: `${apiMutationUrl}`, data: values, method: "POST" }),
-    onSuccess: (data: any) => {
+      fetcher<Product>({
+        url: `${apiMutationUrl}`,
+        data: values,
+        method: "POST",
+      }),
+    onSuccess: (data: Product) => {
       const successMessage =
         type === "create"
           ? "Product created successfully"
           : "Product updated successfully";
       setSuccess(successMessage);
       setTimeout(() => setSuccess(undefined), 3000);
+
       queryClient.invalidateQueries({ queryKey: ["products-all"] });
       queryClient.invalidateQueries({ queryKey: ["product", product?.id] });
-      form.reset();
-      router.back();
+      form.reset(initializeDefaultValues(data));
+      if (type === "create") {
+        router.back();
+      }
     },
     onError: (error: Error) => {
       setError(error.message);

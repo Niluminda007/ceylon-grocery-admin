@@ -178,8 +178,9 @@ model Order {
   discounts        Discount[]     @relation("OrderDiscount") 
   invoice          Invoice?       @relation("OrderInvoice")
   coupons          Coupon[]       @relation("OrderCoupon")
-  address          Address?         @relation(fields: [addressId], references: [id])
+  address          Address?       @relation(fields: [addressId], references: [id])
   addressId        String?
+  contactNumber    String?
   invoiceId        String?
   deliveryOption   DeliveryOption? @relation(fields: [deliveryOptionId], references: [id])
   deliveryOptionId String?
