@@ -164,6 +164,7 @@ model OrderItem {
 
 model Order {
   id               String         @id @default(cuid())
+  orderId          String        @unique
   userId           String
   user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderDate        DateTime       @default(now())
